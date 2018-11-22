@@ -1,5 +1,7 @@
 package com.aren.arenweatherlogger
 
+import android.location.Address
+import android.location.Geocoder
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
@@ -26,6 +28,14 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
         ConnectionHelper.api().getWeatherInfo().enqueue(this)
 
+    }
+
+    fun getCityName(lat:Double,lon:Double):String {
+        lateinit var geocoder:Geocoder
+        var address : ArrayList<Address>
+        address = geocoder.getFromLocation(lat,lon,10) as ArrayList<Address>
+
+        return ""
     }
 
 

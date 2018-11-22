@@ -11,7 +11,7 @@ import java.util.*
 
 class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInterface: BaseAdapterInterface) :
     RecyclerView.Adapter<WeatherAdapter.ViewHolder>() {
-    val dateFormatMonthDayShort = SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.getDefault())
+    val dateFormatMonthDayShort = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_weather, parent, false)
