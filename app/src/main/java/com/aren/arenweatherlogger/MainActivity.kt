@@ -1,19 +1,17 @@
 package com.aren.arenweatherlogger
 
+import android.app.Dialog
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.location.*
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import com.airbnb.lottie.LottieAnimationView
 import com.ogoo.heroo.service.ConnectionHelper
 import retrofit2.Call
@@ -27,6 +25,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     lateinit var rv_weather: RecyclerView
     lateinit var anim_loading: LottieAnimationView
     private var locationManager: LocationManager? = null
+
     val dateFormatMonthDayShort = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
     val PREFS_FILENAME = "weatherlogger.prefs"
@@ -46,26 +45,17 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
         createList(getSavedWeatherList())
 
-//        if (ContextCompat.checkSelfPermission(
-//                this,
-//                android.Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            val permissions = arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION)
-//            ActivityCompat.requestPermissions(this, permissions, 0)
-//        }
-
     }
 
     fun getSavedWeatherList(): ArrayList<WeatherModel> {
         prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
-        var cityTemperature: String? = prefs?.getString(PREF_TEMPERATURE, "")
-        var cityName: String? = prefs?.getString(PREF_CITY_NAME, "")
-        var savedDate: String? = prefs?.getString(PREF_DATE, "")
+        var cityTemperature: String? = prefs?.getString(PREF_TEMPERATURE, "-")
+        var cityName: String? = prefs?.getString(PREF_CITY_NAME, "-")
+        var savedDate: String? = prefs?.getString(PREF_DATE, "-")
 
         var main: WeatherModel.Main = WeatherModel.Main()
         main.temp = cityTemperature!!
-        var weatherModel: WeatherModel = WeatherModel()
+        var weatherModel = WeatherModel()
         weatherModel.main = main
         weatherModel.name = cityName!!
         weatherModel.savedDate = savedDate!!
@@ -73,19 +63,6 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         listWeather.add(weatherModel)
 
         return listWeather
-    }
-
-    fun getCityName(lat: Double, lon: Double): String {
-        val geocoder = Geocoder(this)
-        var cityName = ""
-        var addressList: ArrayList<Address> = geocoder.getFromLocation(lat, lon, 10) as ArrayList<Address>
-        for (address in addressList) {
-            if (address.locality != null) {
-                cityName = address.locality
-                break
-            }
-        }
-        return cityName
     }
 
     fun saveWeather(weatherModel: WeatherModel) {
@@ -105,6 +82,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         if (response != null) {
             var weatherModel = response.body()
             if (weatherModel != null) {
+                Toast.makeText(this, getString(R.string.refreshed), Toast.LENGTH_SHORT).show()
                 weatherModel.savedDate = dateFormatMonthDayShort.format(Calendar.getInstance().time)
                 saveWeather(weatherModel)
                 var listWeather: ArrayList<WeatherModel> = ArrayList()
@@ -130,13 +108,26 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            var cityName: String = getCityName(location.latitude, location.longitude)
+            var cityName: String = getCityNameByCoordinates(location.latitude, location.longitude)
             ConnectionHelper.api().getWeatherInfo(cityName).enqueue(this@MainActivity)
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
         override fun onProviderEnabled(provider: String) {}
         override fun onProviderDisabled(provider: String) {}
+    }
+
+    fun getCityNameByCoordinates(lat: Double, lon: Double): String {
+        val geocoder = Geocoder(this)
+        var cityName = ""
+        var addressList: ArrayList<Address> = geocoder.getFromLocation(lat, lon, 10) as ArrayList<Address>
+        for (address in addressList) {
+            if (address.locality != null) {
+                cityName = address.locality
+                break
+            }
+        }
+        return cityName
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -147,13 +138,23 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.getItemId()
         if (id == R.id.btn_save) {
-            anim_loading.setVisibility(View.VISIBLE)
-            try {
-                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
-            } catch (ex: SecurityException) {
-                Log.d("tag", "No location available");
-            }
+            showDetails()
+//            anim_loading.setVisibility(View.VISIBLE)
+//            try {
+//                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+//            } catch (ex: SecurityException) {
+//                Log.d("tag", "No location available");
+//            }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showDetails() {
+        var successDialog = Dialog(this, android.R.style.Theme_NoTitleBar_Fullscreen)
+        successDialog.setContentView(R.layout.layout_details)
+
+
+        successDialog.getWindow()!!.getAttributes().windowAnimations = R.style.DialogAnimation
+        successDialog.show()
     }
 }

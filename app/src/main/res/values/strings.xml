@@ -3,4 +3,6 @@
     <string name="temperature">Temperature:</string>
     <string name="city">City:</string>
     <string name="date">Date:</string>
+    <string name="refreshed">Weather data is refreshed!</string>
+    <string name="more_details">More Details</string>
 </resources>
