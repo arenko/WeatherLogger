@@ -5,10 +5,10 @@
                 android:layout_height="match_parent">
 
     <TextView
+            android:id="@+id/tv_city_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="TEST"
             android:gravity="center"
             android:textColor="@color/black"
             android:textSize="20sp"/>

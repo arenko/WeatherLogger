@@ -1,18 +1,29 @@
 package com.aren.arenweatherlogger
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.*
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import com.airbnb.lottie.LottieAnimationView
+import com.aren.arenweatherlogger.Constants.Companion.PREFS_FILENAME
+import com.aren.arenweatherlogger.Constants.Companion.PREF_CITY_NAME
+import com.aren.arenweatherlogger.Constants.Companion.PREF_DATE
+import com.aren.arenweatherlogger.Constants.Companion.PREF_TEMPERATURE
 import com.ogoo.heroo.service.ConnectionHelper
 import retrofit2.Call
 import retrofit2.Callback
@@ -20,6 +31,7 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
+@SuppressLint("ByteOrderMark")
 class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInterface {
 
     lateinit var rv_weather: RecyclerView
@@ -27,11 +39,6 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     private var locationManager: LocationManager? = null
 
     val dateFormatMonthDayShort = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-
-    val PREFS_FILENAME = "weatherlogger.prefs"
-    val PREF_TEMPERATURE = "PREF_TEMPERATURE"
-    val PREF_DATE = "PREF_DATE"
-    val PREF_CITY_NAME = "PREF_CITY_NAME"
     var prefs: SharedPreferences? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,9 +56,9 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
     fun getSavedWeatherList(): ArrayList<WeatherModel> {
         prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
-        var cityTemperature: String? = prefs?.getString(PREF_TEMPERATURE, "-")
-        var cityName: String? = prefs?.getString(PREF_CITY_NAME, "-")
-        var savedDate: String? = prefs?.getString(PREF_DATE, "-")
+        var cityTemperature: String? = prefs?.getString(PREF_TEMPERATURE, "")
+        var cityName: String? = prefs?.getString(PREF_CITY_NAME, "")
+        var savedDate: String? = prefs?.getString(PREF_DATE, "")
 
         var main: WeatherModel.Main = WeatherModel.Main()
         main.temp = cityTemperature!!
@@ -79,16 +86,14 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     }
 
     override fun onResponse(call: Call<WeatherModel>, response: Response<WeatherModel>) {
-        if (response != null) {
-            var weatherModel = response.body()
-            if (weatherModel != null) {
-                Toast.makeText(this, getString(R.string.refreshed), Toast.LENGTH_SHORT).show()
-                weatherModel.savedDate = dateFormatMonthDayShort.format(Calendar.getInstance().time)
-                saveWeather(weatherModel)
-                var listWeather: ArrayList<WeatherModel> = ArrayList()
-                listWeather.add(weatherModel)
-                createList(listWeather)
-            }
+        var weatherModel = response.body()
+        if (weatherModel != null) {
+            Toast.makeText(this, getString(R.string.refreshed), Toast.LENGTH_SHORT).show()
+            weatherModel.savedDate = dateFormatMonthDayShort.format(Calendar.getInstance().time)
+            saveWeather(weatherModel)
+            var listWeather: ArrayList<WeatherModel> = ArrayList()
+            listWeather.add(weatherModel)
+            createList(listWeather)
         }
     }
 
@@ -103,13 +108,18 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     }
 
     override fun onAdapterItemSelectListener(`object`: Any) {
-
+        var weatherModel: WeatherModel = `object` as WeatherModel
+        if (!weatherModel.name.isEmpty()) {
+            showDetails(weatherModel)
+        }
     }
 
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             var cityName: String = getCityNameByCoordinates(location.latitude, location.longitude)
-            ConnectionHelper.api().getWeatherInfo(cityName).enqueue(this@MainActivity)
+            if (!cityName.isEmpty()) {
+                ConnectionHelper.api().getWeatherInfo(cityName).enqueue(this@MainActivity)
+            }
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
@@ -120,13 +130,18 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     fun getCityNameByCoordinates(lat: Double, lon: Double): String {
         val geocoder = Geocoder(this)
         var cityName = ""
-        var addressList: ArrayList<Address> = geocoder.getFromLocation(lat, lon, 10) as ArrayList<Address>
-        for (address in addressList) {
-            if (address.locality != null) {
-                cityName = address.locality
-                break
+        try {
+            var addressList: ArrayList<Address> = geocoder.getFromLocation(lat, lon, 10) as ArrayList<Address>
+            for (address in addressList) {
+                if (address.adminArea != null) {
+                    cityName = address.adminArea
+                    break
+                }
             }
+        } catch (e: Exception) {
+
         }
+
         return cityName
     }
 
@@ -138,20 +153,49 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.getItemId()
         if (id == R.id.btn_save) {
-            showDetails()
-//            anim_loading.setVisibility(View.VISIBLE)
-//            try {
-//                locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
-//            } catch (ex: SecurityException) {
-//                Log.d("tag", "No location available");
-//            }
+            try {
+                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+                    anim_loading.setVisibility(View.VISIBLE)
+                    locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
+                }
+
+            } catch (ex: SecurityException) {
+                anim_loading.setVisibility(View.GONE)
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showDetails() {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            100 -> {
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Log.i("tag", "Permission has been denied by user")
+                } else {
+                    anim_loading.setVisibility(View.VISIBLE)
+                    try {
+                        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+                    } catch (ex: SecurityException) {
+                        anim_loading.setVisibility(View.GONE)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showDetails(weatherModel: WeatherModel) {
         var successDialog = Dialog(this, android.R.style.Theme_NoTitleBar_Fullscreen)
         successDialog.setContentView(R.layout.layout_details)
+
+        var tv_city_name: TextView = successDialog.findViewById(R.id.tv_city_name)
+        tv_city_name.setText(weatherModel.name)
 
 
         successDialog.getWindow()!!.getAttributes().windowAnimations = R.style.DialogAnimation

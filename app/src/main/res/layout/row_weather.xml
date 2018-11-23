@@ -1,65 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="15dp">
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="15dp"
-        android:orientation="vertical">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:orientation="horizontal" android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
-                  android:layout_marginLeft="20dp">
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:textStyle="bold"
-                android:textSize="15sp"
-                android:text="@string/city"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
 
         <TextView
-                android:id="@+id/tv_city"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"/>
-    </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:orientation="horizontal" android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
-                  android:layout_marginLeft="20dp">
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:textStyle="bold"
-                android:textSize="15sp"
-                android:text="@string/temperature"/>
-
-        <TextView
-                android:id="@+id/tv_temperature"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"/>
-    </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                  android:orientation="horizontal" android:layout_marginTop="5dp" android:layout_marginBottom="5dp"
-                  android:layout_marginLeft="20dp">
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:textStyle="bold"
-                android:textSize="15sp"
-                android:text="@string/date"/>
-
-        <TextView
-                android:id="@+id/tv_date"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="5dp"/>
-    </LinearLayout>
-    <Button
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:layout_marginRight="5dp"
-            android:background="@null"
-            android:textAllCaps="false"
-            android:textColor="@color/colorPrimary"
-            android:text="@string/more_details"/>
+            android:layout_height="match_parent"
+            android:text="@string/city"
+            android:textSize="@dimen/a"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_city"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:textSize="@dimen/a" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/temperature"
+            android:textSize="@dimen/a"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_temperature"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:textSize="@dimen/a" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/date"
+            android:textSize="@dimen/a"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_date"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:textSize="@dimen/a" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginRight="5dp"
+        android:background="@null"
+        android:text="@string/more_details"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimary" />
 </LinearLayout>

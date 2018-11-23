@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ArenWeatherLogger</string>
+    <string name="app_name">Aren Weather</string>
     <string name="temperature">Temperature:</string>
     <string name="city">City:</string>
     <string name="date">Date:</string>

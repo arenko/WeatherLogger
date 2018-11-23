@@ -4,11 +4,12 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 
 
 class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInterface: BaseAdapterInterface) :
-    RecyclerView.Adapter<WeatherAdapter.ViewHolder>() {
+        RecyclerView.Adapter<WeatherAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_weather, parent, false)
@@ -22,8 +23,9 @@ class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInt
             holder.tv_temperature.setText(holder.weatherModel?.main?.temp!!.toString() + " °C")
             holder.tv_city.setText(holder.weatherModel?.name)
             holder.tv_date.setText(holder.weatherModel?.savedDate)
-
-            holder.mView.setOnClickListener { baseAdapterInterface.onAdapterItemSelectListener(holder.weatherModel!!) }
+            holder.btn_details.setOnClickListener({
+                baseAdapterInterface.onAdapterItemSelectListener(holder.weatherModel!!)
+            })
         }
     }
 
@@ -35,6 +37,7 @@ class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInt
         internal val tv_temperature: TextView = mView.findViewById(R.id.tv_temperature)
         internal val tv_date: TextView = mView.findViewById(R.id.tv_date)
         internal val tv_city: TextView = mView.findViewById(R.id.tv_city)
+        internal val btn_details: Button = mView.findViewById(R.id.btn_details)
         var weatherModel: WeatherModel? = null
     }
 }
