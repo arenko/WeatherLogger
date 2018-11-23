@@ -5,13 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInterface: BaseAdapterInterface) :
     RecyclerView.Adapter<WeatherAdapter.ViewHolder>() {
-    val dateFormatMonthDayShort = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherAdapter.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_weather, parent, false)
@@ -24,9 +21,7 @@ class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInt
 
             holder.tv_temperature.setText(holder.weatherModel?.main?.temp!!.toString() + " °C")
             holder.tv_city.setText(holder.weatherModel?.name)
-
-            var date: String = dateFormatMonthDayShort.format(Calendar.getInstance().time)
-            holder.tv_date.setText(date)
+            holder.tv_date.setText(holder.weatherModel?.savedDate)
 
             holder.mView.setOnClickListener { baseAdapterInterface.onAdapterItemSelectListener(holder.weatherModel!!) }
         }

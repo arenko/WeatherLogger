@@ -3,7 +3,6 @@ package com.aren.arenweatherlogger
 import com.google.gson.annotations.Expose
 
 class WeatherModel {
-
     @Expose
     var id: Int= 0
     @Expose
@@ -12,10 +11,11 @@ class WeatherModel {
     var main: Main = Main()
     @Expose
     var coord: Coord = Coord()
+    var savedDate: String = ""
 
     class Main {
         @Expose
-        var temp: Double = 0.0
+        var temp: String = ""
         @Expose
         var pressure: Double = 0.0
         @Expose
