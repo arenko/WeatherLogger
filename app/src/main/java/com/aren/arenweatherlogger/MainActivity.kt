@@ -17,6 +17,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import com.airbnb.lottie.LottieAnimationView
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
     lateinit var rv_weather: RecyclerView
     lateinit var anim_loading: LottieAnimationView
+    lateinit var sp_cities: Spinner
     private var locationManager: LocationManager? = null
 
     val dateFormatMonthDayShort = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -46,12 +49,25 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         setContentView(R.layout.activity_main)
 
         rv_weather = findViewById(R.id.rv_weather) as RecyclerView
-        anim_loading = findViewById(R.id.anim_loading)
+        sp_cities = findViewById(R.id.sp_cities) as Spinner
+        anim_loading = findViewById(R.id.anim_loading) as LottieAnimationView
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?;
 
+
+        createCitySpinner()
         createList(getSavedWeatherList())
 
+    }
+
+    private fun createCitySpinner() {
+        val listCities = ArrayList(Arrays.asList<String>())
+        listCities.add(getString(R.string.current))
+        listCities.add(getString(R.string.london))
+        listCities.add(getString(R.string.paris))
+        val cityAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listCities)
+        cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        sp_cities.setAdapter(cityAdapter)
     }
 
     fun getSavedWeatherList(): ArrayList<WeatherModel> {
@@ -154,17 +170,20 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         val id = item.getItemId()
         if (id == R.id.btn_save) {
             try {
-                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED &&
-                        ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    anim_loading.setVisibility(View.VISIBLE)
-                    locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+                if (sp_cities.selectedItemPosition != 0) {
+                    ConnectionHelper.api().getWeatherInfo(sp_cities.selectedItem as String).enqueue(this@MainActivity)
                 } else {
-                    ActivityCompat.requestPermissions(this,
-                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
+                    if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED &&
+                            ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED) {
+                        anim_loading.setVisibility(View.VISIBLE)
+                        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+                    } else {
+                        ActivityCompat.requestPermissions(this,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
+                    }
                 }
-
             } catch (ex: SecurityException) {
                 anim_loading.setVisibility(View.GONE)
             }

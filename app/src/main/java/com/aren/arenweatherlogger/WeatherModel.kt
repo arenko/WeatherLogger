@@ -17,13 +17,13 @@ class WeatherModel {
         @Expose
         var temp: String = ""
         @Expose
-        var pressure: Double = 0.0
+        var pressure: String = ""
         @Expose
-        var humidity: Double = 0.0
+        var humidity: String = ""
         @Expose
-        var temp_min: Double = 0.0
+        var temp_min: String = ""
         @Expose
-        var temp_max: Double = 0.0
+        var temp_max: String = ""
     }
 
     class Coord {
