@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Aren Weather</string>
     <string name="temperature">Temperature:</string>
+    <string name="max_temperature">Max Temperature:</string>
+    <string name="min_temperature">Min Temperature:</string>
+    <string name="weather">Weather:</string>
     <string name="city">City:</string>
     <string name="date">Date:</string>
     <string name="refreshed">Current location data is refreshed!</string>
@@ -8,4 +11,5 @@
     <string name="paris">Paris</string>
     <string name="current">Current Location</string>
     <string name="london">London</string>
+    <string name="tablet_design">THIS PAGE IS DESIGNED FOR TABLETS</string>
 </resources>

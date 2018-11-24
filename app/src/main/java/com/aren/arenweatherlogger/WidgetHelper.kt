@@ -18,9 +18,7 @@ class WidgetHelper : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
 
-        // Get all ids
-        val thisWidget = ComponentName(context,
-                WidgetHelper::class.java)
+        val thisWidget = ComponentName(context,WidgetHelper::class.java)
         val allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
         for (widgetId in allWidgetIds) {
             var prefs = context .getSharedPreferences(PREFS_FILENAME, 0)
@@ -31,15 +29,15 @@ class WidgetHelper : AppWidgetProvider() {
             remoteViews.setTextViewText(R.id.tv_city, cityName)
             remoteViews.setTextViewText(R.id.tv_temperature, cityTemperature + " °C")
 
-            // Register an onClickListener
-//            val intent = Intent(context, WidgetHelper::class.java)
-//
-//            intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-//            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+            val intent = Intent(context, WidgetHelper::class.java)
 
-//            val pendingIntent = PendingIntent.getBroadcast(context,
-//                    0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-//            remoteViews.setOnClickPendingIntent(R.id.update, pendingIntent)
+            intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+
+            val pendingIntent = PendingIntent.getBroadcast(context,
+                    0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            remoteViews.setOnClickPendingIntent(R.id.tv_city, pendingIntent)
+            remoteViews.setOnClickPendingIntent(R.id.tv_temperature, pendingIntent)
             appWidgetManager.updateAppWidget(widgetId, remoteViews)
         }
     }

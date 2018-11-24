@@ -33,7 +33,7 @@ class WeatherAdapter(private val mValues: List<WeatherModel>, val baseAdapterInt
         return mValues.size
     }
 
-    inner class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
+    inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         internal val tv_temperature: TextView = mView.findViewById(R.id.tv_temperature)
         internal val tv_date: TextView = mView.findViewById(R.id.tv_date)
         internal val tv_city: TextView = mView.findViewById(R.id.tv_city)

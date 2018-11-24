@@ -1,7 +1,6 @@
 package com.aren.arenweatherlogger
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -25,7 +24,11 @@ import com.airbnb.lottie.LottieAnimationView
 import com.aren.arenweatherlogger.Constants.Companion.PREFS_FILENAME
 import com.aren.arenweatherlogger.Constants.Companion.PREF_CITY_NAME
 import com.aren.arenweatherlogger.Constants.Companion.PREF_DATE
+import com.aren.arenweatherlogger.Constants.Companion.PREF_MAX_TEMP
+import com.aren.arenweatherlogger.Constants.Companion.PREF_MIN_TEMP
+import com.aren.arenweatherlogger.Constants.Companion.PREF_SELECTED_ITEM
 import com.aren.arenweatherlogger.Constants.Companion.PREF_TEMPERATURE
+import com.aren.arenweatherlogger.Constants.Companion.PREF_WEATHER
 import com.ogoo.heroo.service.ConnectionHelper
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,7 +36,6 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
-@SuppressLint("ByteOrderMark")
 class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInterface {
 
     lateinit var rv_weather: RecyclerView
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?;
 
+        prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
 
         createCitySpinner()
         createList(getSavedWeatherList())
@@ -68,20 +71,26 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         val cityAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listCities)
         cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         sp_cities.setAdapter(cityAdapter)
+        sp_cities.setSelection(prefs?.getInt(Constants.PREF_SELECTED_ITEM, 0)!!)
     }
 
     fun getSavedWeatherList(): ArrayList<WeatherModel> {
-        prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
         var cityTemperature: String? = prefs?.getString(PREF_TEMPERATURE, "")
         var cityName: String? = prefs?.getString(PREF_CITY_NAME, "")
         var savedDate: String? = prefs?.getString(PREF_DATE, "")
+        var maxTemp: String? = prefs?.getString(PREF_MAX_TEMP, "")
+        var minTemp: String? = prefs?.getString(PREF_MIN_TEMP, "")
+        var weatherType: String? = prefs?.getString(PREF_WEATHER, "")
 
         var main: WeatherModel.Main = WeatherModel.Main()
         main.temp = cityTemperature!!
+        main.temp_max = maxTemp!!
+        main.temp_min = minTemp!!
         var weatherModel = WeatherModel()
         weatherModel.main = main
         weatherModel.name = cityName!!
         weatherModel.savedDate = savedDate!!
+        weatherModel.weatherType = weatherType!!
         var listWeather: ArrayList<WeatherModel> = ArrayList()
         listWeather.add(weatherModel)
 
@@ -89,8 +98,12 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     }
 
     fun saveWeather(weatherModel: WeatherModel) {
+
         val editor = prefs!!.edit()
         editor.putString(PREF_TEMPERATURE, weatherModel.main.temp)
+        editor.putString(PREF_MAX_TEMP, weatherModel.main.temp_max)
+        editor.putString(PREF_MIN_TEMP, weatherModel.main.temp_min)
+        editor.putString(PREF_WEATHER, weatherModel.weatherType)
         editor.putString(PREF_CITY_NAME, weatherModel.name)
         editor.putString(PREF_DATE, weatherModel.savedDate)
         editor.apply()
@@ -104,8 +117,15 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
     override fun onResponse(call: Call<WeatherModel>, response: Response<WeatherModel>) {
         var weatherModel = response.body()
         if (weatherModel != null) {
-            Toast.makeText(this, getString(R.string.refreshed), Toast.LENGTH_SHORT).show()
+            var weatherType = ""
+            for (index in weatherModel.weather.indices) {
+                weatherType += weatherModel.weather[index].main
+                if (index != weatherModel.weather.size - 1) {
+                    weatherType += " , "
+                }
+            }
             weatherModel.savedDate = dateFormatMonthDayShort.format(Calendar.getInstance().time)
+            weatherModel.weatherType = weatherType
             saveWeather(weatherModel)
             var listWeather: ArrayList<WeatherModel> = ArrayList()
             listWeather.add(weatherModel)
@@ -134,6 +154,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         override fun onLocationChanged(location: Location) {
             var cityName: String = getCityNameByCoordinates(location.latitude, location.longitude)
             if (!cityName.isEmpty()) {
+                Toast.makeText(this@MainActivity, getString(R.string.refreshed), Toast.LENGTH_SHORT).show()
                 ConnectionHelper.api().getWeatherInfo(cityName).enqueue(this@MainActivity)
             }
         }
@@ -170,7 +191,11 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
         val id = item.getItemId()
         if (id == R.id.btn_save) {
             try {
+                val editor = prefs!!.edit()
+                editor.putInt(PREF_SELECTED_ITEM, sp_cities.selectedItemPosition)
+                editor.apply()
                 if (sp_cities.selectedItemPosition != 0) {
+                    locationManager?.removeUpdates(locationListener)
                     ConnectionHelper.api().getWeatherInfo(sp_cities.selectedItem as String).enqueue(this@MainActivity)
                 } else {
                     if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -178,7 +203,7 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
                             ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                             PackageManager.PERMISSION_GRANTED) {
                         anim_loading.setVisibility(View.VISIBLE)
-                        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+                        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener);
                     } else {
                         ActivityCompat.requestPermissions(this,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
@@ -215,6 +240,14 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
         var tv_city_name: TextView = successDialog.findViewById(R.id.tv_city_name)
         tv_city_name.setText(weatherModel.name)
+        var tv_temperature: TextView = successDialog.findViewById(R.id.tv_temperature)
+        tv_temperature.setText(weatherModel.main.temp + " °C")
+        var tv_max_temperature: TextView = successDialog.findViewById(R.id.tv_max_temperature)
+        tv_max_temperature.setText(weatherModel.main.temp_max)
+        var tv_min_temperature: TextView = successDialog.findViewById(R.id.tv_min_temperature)
+        tv_min_temperature.setText(weatherModel.main.temp_min)
+        var tv_weather: TextView = successDialog.findViewById(R.id.tv_weather)
+        tv_weather.setText(weatherModel.weatherType)
 
 
         successDialog.getWindow()!!.getAttributes().windowAnimations = R.style.DialogAnimation

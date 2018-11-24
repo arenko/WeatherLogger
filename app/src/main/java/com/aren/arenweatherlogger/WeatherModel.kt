@@ -11,6 +11,8 @@ class WeatherModel {
     var main: Main = Main()
     @Expose
     var coord: Coord = Coord()
+    var weather: ArrayList<Weather> = ArrayList()
+    var weatherType: String = ""
     var savedDate: String = ""
 
     class Main {
@@ -24,6 +26,13 @@ class WeatherModel {
         var temp_min: String = ""
         @Expose
         var temp_max: String = ""
+    }
+
+    class Weather {
+        @Expose
+        var id: String = ""
+        @Expose
+        var main: String = ""
     }
 
     class Coord {

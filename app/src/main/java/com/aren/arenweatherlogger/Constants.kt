@@ -8,5 +8,9 @@ class Constants {
         const val PREF_TEMPERATURE = "PREF_TEMPERATURE"
         const val PREF_DATE = "PREF_DATE"
         const val PREF_CITY_NAME = "PREF_CITY_NAME"
+        const val PREF_MAX_TEMP = "PREF_MAX_TEMP"
+        const val PREF_MIN_TEMP = "PREF_MIN_TEMP"
+        const val PREF_WEATHER = "PREF_WEATHER"
+        const val PREF_SELECTED_ITEM = "PREF_SELECTED_ITEM"
     }
 }
