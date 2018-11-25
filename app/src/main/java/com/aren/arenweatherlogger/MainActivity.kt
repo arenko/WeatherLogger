@@ -202,8 +202,12 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
                             PackageManager.PERMISSION_GRANTED &&
                             ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                             PackageManager.PERMISSION_GRANTED) {
-                        anim_loading.setVisibility(View.VISIBLE)
-                        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener);
+                        if (!locationManager?.isProviderEnabled( LocationManager.NETWORK_PROVIDER )!! ) {
+                            Toast.makeText(this@MainActivity, getString(R.string.gps_warning), Toast.LENGTH_LONG).show()
+                        }else {
+                            anim_loading.setVisibility(View.VISIBLE)
+                            locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener);
+                        }
                     } else {
                         ActivityCompat.requestPermissions(this,
                                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
@@ -223,11 +227,15 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
                 if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Log.i("tag", "Permission has been denied by user")
                 } else {
-                    anim_loading.setVisibility(View.VISIBLE)
-                    try {
-                        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
-                    } catch (ex: SecurityException) {
-                        anim_loading.setVisibility(View.GONE)
+                    if (!locationManager?.isProviderEnabled( LocationManager.NETWORK_PROVIDER )!!) {
+                        Toast.makeText(this@MainActivity, getString(R.string.gps_warning), Toast.LENGTH_LONG).show()
+                    }else{
+                        anim_loading.setVisibility(View.VISIBLE)
+                        try {
+                            locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+                        } catch (ex: SecurityException) {
+                            anim_loading.setVisibility(View.GONE)
+                        }
                     }
                 }
             }
@@ -252,5 +260,10 @@ class MainActivity : AppCompatActivity(), Callback<WeatherModel>, BaseAdapterInt
 
         successDialog.getWindow()!!.getAttributes().windowAnimations = R.style.DialogAnimation
         successDialog.show()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        locationManager?.removeUpdates(locationListener)
     }
 }
